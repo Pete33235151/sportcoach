@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sportcoach"
+version = "0.3.0"
+description = "Private adaptive endurance coach with Garmin Personal API and a mobile-first PWA"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.110,<1", "uvicorn>=0.27,<1", "pydantic>=2.5,<3", "sqlalchemy>=2.0,<3", "python-dotenv>=1,<2"]
+
+[project.optional-dependencies]
+garmin = ["garmin-connect-personal-api-python>=1.0,<2", "garminconnect[workout]>=0.3.19,<0.4", "fitdecode>=0.10"]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
