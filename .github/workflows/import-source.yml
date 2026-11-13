@@ -1,0 +1,46 @@
+name: One-time SportCoach source import
+on:
+  push:
+    paths:
+      - ".github/workflows/import-source.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and unpack SportCoach
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import tarfile
+          from pathlib import Path
+
+          encoded = Path(".bootstrap/sportcoach.tar.xz.b64").read_text(encoding="ascii")
+          data = base64.b64decode(encoded, validate=True)
+          actual = hashlib.sha256(data).hexdigest()
+          expected = "3f356bcc5747d03904d7696027bd9001e6c638873389fd7b4a01687b49a4f8de"
+          if actual != expected:
+              raise SystemExit("Archive integrity verification failed")
+          with tarfile.open(fileobj=io.BytesIO(data), mode="r:xz") as archive:
+              archive.extractall(path=".", filter="data")
+          PY
+      - name: Commit SportCoach source files
+        shell: bash
+        run: |
+          rm -rf .bootstrap
+          rm -f .github/workflows/import-source.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: import tested SportCoach application"
+            git push
+          fi
